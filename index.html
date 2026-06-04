@@ -578,6 +578,28 @@ setTimeout(() => {
   const u = programs.filter(p => ['urgent','soon','active'].includes(getStatus(p))).length;
   if (u) showToast(`🔔 ${u} برنامج يحتاج انتباهك اليوم`);
 }, 2000);
+
+const PASS = '002945';
+
+function checkLogin() {
+  if (sessionStorage.getItem('auth') === 'ok') {
+    document.getElementById('login-screen').style.display = 'none';
+    loadData();
+  }
+}
+
+function doLogin() {
+  const val = document.getElementById('login-input').value;
+  if (val === PASS) {
+    sessionStorage.setItem('auth', 'ok');
+    document.getElementById('login-screen').style.display = 'none';
+    loadData();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('login-input').value = '';
+  }
+}
+
 </script>
 </body>
 </html>
