@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>متابعة برامج المعتمرين</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --border: #e5e3dc;
+    --text: #1a1a18;
+    --text-muted: #7a7870;
+    --green: #2d7a4f; --green-bg: #eaf5ef; --green-bar: #6ec99a;
+    --blue: #1a5fa8; --blue-bg: #e8f0fb; --blue-bar: #7ab3ef;
+    --amber: #8a5200; --amber-bg: #fef3e2; --amber-bar: #f0b84a;
+    --pink: #993556; --pink-bg: #fbeaf0; --pink-bar: #ed93b1;
+    --red: #b83232; --red-bg: #fdeaea; --red-border: #f5b8b8;
+    --warn-bg: #fff8ec; --warn-border: #f5d48a;
+    --info-bg: #e8f0fb; --info-border: #7ab3ef;
+    --radius: 10px; --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* Layout */
+  .container { max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .topbar-brand { display: flex; align-items: center; gap: 10px; }
+  .topbar-brand h1 { font-size: 20px; font-weight: 700; color: var(--text); }
+  .topbar-brand .sub { font-size: 13px; color: var(--text-muted); margin-top: 1px; }
+  .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Buttons */
+  .btn { font-family: 'Tajawal', sans-serif; font-size: 13px; padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: background .15s; font-weight: 500; }
+  .btn:hover { background: var(--bg); }
+  .btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .btn.primary:hover { background: #144e8a; }
+  .btn i { font-size: 15px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .tab { font-family: 'Tajawal', sans-serif; font-size: 14px; font-weight: 500; padding: 10px 16px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; display: flex; align-items: center; gap: 6px; transition: color .15s; }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-content { display: none; } .tab-content.active { display: block; }
+  .notif-dot { background: #e24b4a; color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 20px; font-weight: 700; }
+
+  /* Stats grid */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+  .stat .lbl { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+  .stat .val { font-size: 26px; font-weight: 700; color: var(--text); }
+
+  /* Filters */
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .fb { font-family: 'Tajawal', sans-serif; font-size: 13px; padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; font-weight: 500; transition: all .15s; }
+  .fb.active { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-bar); }
+  .cf { font-family: 'Tajawal', sans-serif; font-size: 12px; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all .15s; }
+  .cf.c0.active { background: var(--green-bg); color: var(--green); border-color: var(--green-bar); }
+  .cf.c1.active { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-bar); }
+  .cf.c2.active { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-bar); }
+  .cf.c3.active { background: var(--pink-bg); color: var(--pink); border-color: var(--pink-bar); }
+  .cf.call.active { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-bar); }
+
+  /* Program cards */
+  .programs { display: flex; flex-direction: column; gap: 10px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 14px; box-shadow: var(--shadow); transition: box-shadow .15s; }
+  .card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+  .card.urgent { border-right: 3px solid #e24b4a; }
+  .card.soon { border-right: 3px solid #e09a20; }
+  .card.far { border-right: 3px solid #b4b2a9; }
+  .card.active { border-right: 3px solid #2d7a4f; }
+  .card.done { border-right: 3px solid #b4b2a9; opacity: .65; }
+  .card-main { flex: 1; min-width: 0; }
+  .card-top { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 7px; }
+  .prog-num { font-size: 12px; color: var(--text-muted); }
+  .group-id { font-size: 13px; font-weight: 700; color: var(--text); }
+  .card-dates { display: flex; gap: 14px; flex-wrap: wrap; }
+  .di { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted); }
+  .di i { font-size: 13px; }
+  .card-note { font-size: 12px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: flex-start; gap: 4px; font-style: italic; }
+  .card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+  .days-left { font-size: 12px; color: var(--text-muted); }
+  .edit-btn { font-family: 'Tajawal', sans-serif; font-size: 12px; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  .edit-btn:hover { background: var(--bg); }
+
+  /* Badges */
+  .badge { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 20px; white-space: nowrap; }
+  .badge.urgent { background: var(--red-bg); color: var(--red); }
+  .badge.soon { background: var(--warn-bg); color: var(--amber); }
+  .badge.far { background: #f1efe8; color: #5f5e5a; }
+  .badge.active { background: var(--green-bg); color: var(--green); }
+  .badge.done { background: #f1efe8; color: #5f5e5a; }
+  .badge.modified { background: var(--blue-bg); color: var(--blue); }
+  .badge.pending { background: var(--warn-bg); color: var(--amber); }
+  .badge.completed { background: var(--green-bg); color: var(--green); }
+  .badge.review { background: var(--red-bg); color: var(--red); }
+  .ctag { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 20px; white-space: nowrap; }
+  .ctag.c0 { background: var(--green-bg); color: var(--green); }
+  .ctag.c1 { background: var(--blue-bg); color: var(--blue); }
+  .ctag.c2 { background: var(--amber-bg); color: var(--amber); }
+  .ctag.c3 { background: var(--pink-bg); color: var(--pink); }
+  .ctag.unset { background: #f1efe8; color: #5f5e5a; }
+
+  /* Alert cards */
+  .alert-card { border-radius: var(--radius); padding: 13px 15px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; border: 1px solid; }
+  .alert-card.danger { background: var(--red-bg); border-color: var(--red-border); }
+  .alert-card.warn { background: var(--warn-bg); border-color: var(--warn-border); }
+  .alert-card.info { background: var(--info-bg); border-color: var(--info-border); }
+  .alert-card i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .alert-card.danger i { color: var(--red); }
+  .alert-card.warn i { color: var(--amber); }
+  .alert-card.info i { color: var(--blue); }
+  .alert-text { font-size: 13px; line-height: 1.6; color: var(--text); }
+  .alert-text strong { font-weight: 700; }
+
+  /* Stats page */
+  .bar-wrap { margin-bottom: 14px; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+  .bar-label .name { font-weight: 700; }
+  .bar-label .count { color: var(--text-muted); font-size: 12px; }
+  .bar-bg { background: var(--bg); border-radius: 20px; height: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .bar-fill { height: 100%; border-radius: 20px; }
+
+  /* Log */
+  .log-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 15px; margin-bottom: 10px; font-size: 13px; line-height: 1.6; box-shadow: var(--shadow); }
+  .log-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .log-prog { font-weight: 700; color: var(--text); }
+  .log-time { font-size: 12px; color: var(--text-muted); }
+  .log-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+  .old-val { color: var(--red); text-decoration: line-through; font-size: 12px; }
+  .new-val { color: var(--green); font-size: 12px; font-weight: 700; }
+  .arrow-lbl { font-size: 12px; color: var(--text-muted); }
+  .field-name { font-size: 12px; color: var(--text-muted); min-width: 90px; }
+
+  /* Modal */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+  .modal { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 22px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
+  .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 18px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .field { margin-bottom: 14px; }
+  .field label { font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 5px; font-weight: 500; }
+  .field input, .field select, .field textarea { width: 100%; padding: 8px 11px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; font-family: 'Tajawal', sans-serif; outline: none; transition: border-color .15s; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--blue); }
+  .field textarea { resize: vertical; min-height: 72px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 18px; justify-content: flex-end; }
+  .btn-save { font-family: 'Tajawal', sans-serif; padding: 8px 22px; border-radius: var(--radius-sm); border: none; background: var(--blue); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .btn-save:hover { background: #144e8a; }
+  .btn-cancel { font-family: 'Tajawal', sans-serif; padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; color: var(--text-muted); font-size: 14px; cursor: pointer; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a1a18; color: #fff; padding: 11px 22px; border-radius: 30px; font-size: 14px; font-weight: 500; z-index: 999; display: none; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.25); font-family: 'Tajawal', sans-serif; }
+
+  /* Section label */
+  .section-lbl { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; margin-top: 4px; display: flex; align-items: center; gap: 5px; }
+  .empty { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 14px; }
+  .empty i { font-size: 32px; display: block; margin-bottom: 10px; }
+
+  @media (max-width: 600px) {
+    .topbar { flex-direction: column; align-items: flex-start; }
+    .chart-grid { grid-template-columns: 1fr; }
+    .tab { font-size: 12px; padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div>
+        <h1><span style="font-size:20px;vertical-align:-3px;margin-left:6px">🕌</span>متابعة برامج المعتمرين</h1>
+        <div class="sub">نظام إدارة وتتبع البرامج</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn" onclick="exportCSV()"><span aria-hidden="true">📊</span>تصدير إكسل</button>
+      <button class="btn" onclick="exportPDF()"><span aria-hidden="true">📄</span>تصدير PDF</button>
+      <button class="btn primary" onclick="openAddModal()"><span aria-hidden="true">＋</span>إضافة برنامج</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('programs',this)"><span aria-hidden="true">📋</span>البرامج</button>
+    <button class="tab" onclick="switchTab('alerts',this)" id="tab-alerts-btn"><span aria-hidden="true">🔔</span>التنبيهات <span id="alert-count"></span></button>
+    <button class="tab" onclick="switchTab('stats',this)"><span aria-hidden="true">📊</span>إحصائيات</button>
+    <button class="tab" onclick="switchTab('log',this)"><span aria-hidden="true">🕓</span>سجل التعديلات</button>
+  </div>
+
+  <!-- Programs Tab -->
+  <div id="tab-programs" class="tab-content active">
+    <div class="stats" id="stats"></div>
+    <div class="filter-row" id="status-filters">
+      <button class="fb active" onclick="setFilter('all',this)">الكل</button>
+      <button class="fb" onclick="setFilter('urgent',this)">عاجل (يومين)</button>
+      <button class="fb" onclick="setFilter('soon',this)">قريب (5 أيام)</button>
+      <button class="fb" onclick="setFilter('far',this)">بعيد</button>
+      <button class="fb" onclick="setFilter('active',this)">نشط الآن</button>
+      <button class="fb" onclick="setFilter('done',this)">منتهي</button>
+    </div>
+    <div class="section-lbl" style="margin-bottom:6px"><span aria-hidden="true">🔽</span>تصفية بالشركة</div>
+    <div class="filter-row" id="company-filters" style="margin-bottom:16px"></div>
+    <div class="programs" id="programs"></div>
+  </div>
+
+  <!-- Alerts Tab -->
+  <div id="tab-alerts" class="tab-content">
+    <div id="alerts-content"></div>
+  </div>
+
+  <!-- Stats Tab -->
+  <div id="tab-stats" class="tab-content">
+    <div id="stats-content"></div>
+  </div>
+
+  <!-- Log Tab -->
+  <div id="tab-log" class="tab-content">
+    <div id="log-content"><div class="empty"><span aria-hidden="true">🕓</span>لا توجد تعديلات بعد</div></div>
+  </div>
+
+</div>
+
+<!-- Edit Modal -->
+<div id="modal" style="display:none">
+  <div class="modal-bg" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h3><span aria-hidden="true">✏️</span><span id="modal-title">تعديل البرنامج</span></h3>
+      <div class="field"><label>الشركة / الوكيل</label><select id="f-company"></select></div>
+      <div class="field"><label>رقم المجموعة</label><input type="text" id="f-group"></div>
+      <div class="field"><label>تاريخ الدخول</label><input type="date" id="f-entry"></div>
+      <div class="field"><label>تاريخ الانتهاء</label><input type="date" id="f-end"></div>
+      <div class="field"><label>تاريخ التعديل</label><input type="date" id="f-modified"></div>
+      <div class="field"><label>عدد المعتمرين</label><input type="number" id="f-pilgrims" min="1"></div>
+      <div class="field">
+        <label>حالة التعديل</label>
+        <select id="f-status">
+          <option value="">—</option>
+          <option value="pending">معلق</option>
+          <option value="completed">مكتمل</option>
+          <option value="review">يحتاج مراجعة</option>
+        </select>
+      </div>
+      <div class="field"><label>ملاحظات</label><textarea id="f-notes" placeholder="أي تفاصيل إضافية..."></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">إلغاء</button>
+        <button class="btn-save" onclick="saveEdit()">حفظ التعديل</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const TODAY = new Date('2026-06-04');
+
+const COMPANIES = ['ايروين','ابو ظبي','سفن ستار','محاسن'];
+const C_COLORS = ['#2d7a4f','#1a5fa8','#8a5200','#993556'];
+const C_BARS   = ['#6ec99a','#7ab3ef','#f0b84a','#ed93b1'];
+
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k))||null}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+let programs = lsGet('umrah_programs') || [
+  {id:1,group:'480900002010',pilgrims:2,modified:'2026-06-26',entry:'2026-06-27',end:'2026-06-30',isModified:false,company:'ايروين',notes:'',editStatus:''},
+  {id:2,group:'480900002496',pilgrims:2,modified:'2026-06-26',entry:'2026-06-27',end:'2026-06-30',isModified:false,company:'ايروين',notes:'',editStatus:''},
+  {id:3,group:'480900004150',pilgrims:4,modified:'2026-06-26',entry:'2026-06-27',end:'2026-06-30',isModified:false,company:'ايروين',notes:'',editStatus:''},
+  {id:4,group:'480900004014',pilgrims:3,modified:'2026-06-26',entry:'2026-06-27',end:'2026-06-30',isModified:false,company:'ايروين',notes:'',editStatus:''},
+  {id:5,group:'480900004145',pilgrims:1,modified:'2026-06-26',entry:'2026-06-27',end:'2026-06-30',isModified:true,company:'ايروين',notes:'تعديل صحيح حسب تاريخ الدخول',editStatus:'completed'},
+  {id:6,group:'480900004141',pilgrims:1,modified:'2026-06-26',entry:'2026-06-27',end:'2026-06-30',isModified:false,company:'ايروين',notes:'',editStatus:''},
+  {id:7,group:'480900005611',pilgrims:7,modified:'2026-06-26',entry:'2026-06-27',end:'2026-06-30',isModified:false,company:'ايروين',notes:'',editStatus:''},
+  {id:8,group:'480900004672',pilgrims:1,modified:'2026-06-23',entry:'2026-06-24',end:'2026-06-27',isModified:false,company:'ايروين',notes:'',editStatus:''},
+  {id:9,group:'480900004669',pilgrims:1,modified:'2026-06-23',entry:'2026-06-24',end:'2026-06-27',isModified:false,company:'ايروين',notes:'',editStatus:''},
+  {id:10,group:'480900004668',pilgrims:5,modified:'2026-06-23',entry:'2026-06-24',end:'2026-06-27',isModified:false,company:'ايروين',notes:'',editStatus:''},
+  {id:11,group:'480900004666',pilgrims:4,modified:'2026-06-23',entry:'2026-06-24',end:'2026-06-27',isModified:false,company:'ايروين',notes:'',editStatus:''},
+];
+let changelog = lsGet('umrah_changelog') || [];
+let nextId = Math.max(...programs.map(p=>p.id), 0) + 1;
+
+let currentFilter = 'all';
+let currentCompany = 'all';
+let editingId = null;
+let isAdding = false;
+
+function save() {
+  lsSet('umrah_programs', programs);
+  lsSet('umrah_changelog', changelog);
+}
+
+function diffDays(d) {
+  return Math.round((new Date(d) - TODAY) / 86400000);
+}
+
+function getStatus(p) {
+  const e = diffDays(p.entry), en = diffDays(p.end);
+  if (en < 0) return 'done';
+  if (e <= 0 && en >= 0) return 'active';
+  if (e <= 2) return 'urgent';
+  if (e <= 5) return 'soon';
+  return 'far';
+}
+
+function statusLabel(s) {
+  return { urgent:'عاجل — يومين أو أقل', soon:'قريب — خلال 5 أيام', far:'بعيد', active:'نشط الآن', done:'منتهي' }[s];
+}
+function editStatusLabel(s) {
+  return { pending:'معلق', completed:'مكتمل', review:'يحتاج مراجعة' }[s] || '';
+}
+function fmtDate(d) {
+  const dt = new Date(d);
+  const days = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  return `${days[dt.getDay()]} ${dt.getDate()}/${dt.getMonth()+1}`;
+}
+function fmtFull(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return `${dt.getDate()}/${dt.getMonth()+1}/${dt.getFullYear()}`;
+}
+function ci(name) { return COMPANIES.indexOf(name); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'stats') renderStats();
+  if (id === 'alerts') renderAlerts();
+  if (id === 'log') renderLog();
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('#status-filters .fb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPrograms();
+}
+function setCompany(c, btn) {
+  currentCompany = c;
+  document.querySelectorAll('#company-filters .cf').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPrograms();
+}
+
+function openAddModal() {
+  isAdding = true; editingId = null;
+  document.getElementById('modal-title').textContent = 'إضافة برنامج جديد';
+  const sel = document.getElementById('f-company');
+  sel.innerHTML = '<option value="">— اختر شركة —</option>' + COMPANIES.map(c => `<option value="${c}">${c}</option>`).join('');
+  sel.value = '';
+  document.getElementById('f-group').value = '';
+  document.getElementById('f-entry').value = '';
+  document.getElementById('f-end').value = '';
+  document.getElementById('f-modified').value = '';
+  document.getElementById('f-pilgrims').value = '';
+  document.getElementById('f-status').value = '';
+  document.getElementById('f-notes').value = '';
+  document.getElementById('modal').style.display = 'block';
+}
+
+function openEdit(id) {
+  isAdding = false; editingId = id;
+  const p = programs.find(x => x.id === id);
+  document.getElementById('modal-title').textContent = `تعديل البرنامج #${p.id}`;
+  const sel = document.getElementById('f-company');
+  sel.innerHTML = '<option value="">— بدون شركة —</option>' + COMPANIES.map(c => `<option value="${c}">${c}</option>`).join('');
+  sel.value = p.company || '';
+  document.getElementById('f-group').value = p.group;
+  document.getElementById('f-entry').value = p.entry;
+  document.getElementById('f-end').value = p.end;
+  document.getElementById('f-modified').value = p.modified;
+  document.getElementById('f-pilgrims').value = p.pilgrims;
+  document.getElementById('f-status').value = p.editStatus || '';
+  document.getElementById('f-notes').value = p.notes || '';
+  document.getElementById('modal').style.display = 'block';
+}
+
+function closeModal(e) {
+  if (!e || e.target.classList.contains('modal-bg'))
+    document.getElementById('modal').style.display = 'none';
+}
+
+function saveEdit() {
+  const now = new Date().toLocaleTimeString('ar-SA', { hour:'2-digit', minute:'2-digit' });
+  const newCo = document.getElementById('f-company').value || null;
+  const newGroup = document.getElementById('f-group').value.trim();
+  const newEntry = document.getElementById('f-entry').value;
+  const newEnd = document.getElementById('f-end').value;
+  const newMod = document.getElementById('f-modified').value;
+  const newPil = parseInt(document.getElementById('f-pilgrims').value) || 0;
+  const newStatus = document.getElementById('f-status').value;
+  const newNotes = document.getElementById('f-notes').value;
+
+  if (isAdding) {
+    if (!newGroup || !newEntry || !newEnd) { showToast('⚠️ رقم المجموعة والتواريخ مطلوبة'); return; }
+    programs.push({ id: nextId++, group: newGroup, pilgrims: newPil, modified: newMod, entry: newEntry, end: newEnd, isModified: false, company: newCo, notes: newNotes, editStatus: newStatus });
+    showToast('✓ تم إضافة البرنامج');
+  } else {
+    const p = programs.find(x => x.id === editingId);
+    const changes = [];
+    if (newCo !== p.company) changes.push({ field:'الشركة', old:p.company||'—', new:newCo||'—' });
+    if (newGroup !== p.group) changes.push({ field:'رقم المجموعة', old:p.group, new:newGroup });
+    if (newEntry !== p.entry) changes.push({ field:'تاريخ الدخول', old:fmtFull(p.entry), new:fmtFull(newEntry) });
+    if (newEnd !== p.end) changes.push({ field:'تاريخ الانتهاء', old:fmtFull(p.end), new:fmtFull(newEnd) });
+    if (newMod !== p.modified) changes.push({ field:'تاريخ التعديل', old:fmtFull(p.modified), new:fmtFull(newMod) });
+    if (newPil !== p.pilgrims) changes.push({ field:'عدد المعتمرين', old:String(p.pilgrims), new:String(newPil) });
+    if (newStatus !== p.editStatus) changes.push({ field:'الحالة', old:editStatusLabel(p.editStatus)||'—', new:editStatusLabel(newStatus)||'—' });
+    if (newNotes !== p.notes) changes.push({ field:'الملاحظات', old:p.notes||'—', new:newNotes||'—' });
+    if (changes.length) {
+      p.company=newCo; p.group=newGroup; p.entry=newEntry; p.end=newEnd;
+      p.modified=newMod; p.pilgrims=newPil; p.editStatus=newStatus; p.notes=newNotes; p.isModified=true;
+      changelog.unshift({ id:p.id, group:p.group, company:p.company, time:now, date: new Date().toLocaleDateString('ar-SA'), changes });
+      showToast('✓ تم حفظ التعديل');
+    }
+  }
+  save();
+  document.getElementById('modal').style.display = 'none';
+  renderAll();
+}
+
+function renderPrograms() {
+  let filtered = programs;
+  if (currentFilter !== 'all') filtered = filtered.filter(p => getStatus(p) === currentFilter);
+  if (currentCompany !== 'all') filtered = filtered.filter(p => p.company === currentCompany);
+
+  document.getElementById('company-filters').innerHTML =
+    `<button class="cf call ${currentCompany==='all'?'active':''}" onclick="setCompany('all',this)">الكل</button>` +
+    COMPANIES.map((c,i) => `<button class="cf c${i} ${currentCompany===c?'active':''}" onclick="setCompany('${c}',this)"><span aria-hidden="true" style="font-style:normal;font-size:11px">🏢</span>${c}</button>`).join('');
+
+  document.getElementById('programs').innerHTML = filtered.length === 0
+    ? '<div class="empty"><span aria-hidden="true">😶</span>لا توجد برامج في هذه الفئة</div>'
+    : filtered.map(p => {
+        const s = getStatus(p);
+        const ed = diffDays(p.entry), nd = diffDays(p.end);
+        const dMsg = s==='done'?'انتهى' : s==='active'?`ينتهي خلال ${nd} يوم` : `يبدأ خلال ${ed} يوم`;
+        const idx = p.company ? ci(p.company) : -1;
+        const ctag = p.company ? `<span class="ctag c${idx}">${p.company}</span>` : `<span class="ctag unset">بدون شركة</span>`;
+        const esLabel = p.editStatus ? `<span class="badge ${p.editStatus}">${editStatusLabel(p.editStatus)}</span>` : '';
+        const noteHtml = p.notes ? `<div class="card-note"><span aria-hidden="true" style="font-style:normal;font-size:13px;flex-shrink:0">📝</span>${p.notes}</div>` : '';
+        return `<div class="card ${s}">
+          <div class="card-main">
+            <div class="card-top">
+              <span class="prog-num">#${p.id}</span>
+              <span class="group-id">${p.group}</span>
+              <span class="badge ${s}">${statusLabel(s)}</span>
+              ${ctag}
+              ${p.isModified ? '<span class="badge modified">تم التعديل ✓</span>' : ''}
+              ${esLabel}
+            </div>
+            <div class="card-dates">
+              <div class="di"><span aria-hidden="true">📥</span>دخول: ${fmtDate(p.entry)}</div>
+              <div class="di"><span aria-hidden="true">📤</span>انتهاء: ${fmtDate(p.end)}</div>
+              <div class="di"><span aria-hidden="true">👥</span>${p.pilgrims} معتمر</div>
+            </div>
+            ${noteHtml}
+          </div>
+          <div class="card-right">
+            <div class="days-left">${dMsg}</div>
+            <button class="edit-btn" onclick="openEdit(${p.id})"><span aria-hidden="true">✏️</span>تعديل</button>
+          </div>
+        </div>`;
+      }).join('');
+}
+
+function renderMain() {
+  const counts = { urgent:0, soon:0, far:0, active:0, done:0, pilgrims:0 };
+  programs.forEach(p => { counts[getStatus(p)]++; counts.pilgrims += (p.pilgrims||0); });
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="lbl">إجمالي البرامج</div><div class="val">${programs.length}</div></div>
+    <div class="stat"><div class="lbl">إجمالي المعتمرين</div><div class="val">${counts.pilgrims}</div></div>
+    <div class="stat"><div class="lbl">نشط الآن</div><div class="val" style="color:var(--green)">${counts.active}</div></div>
+    <div class="stat"><div class="lbl">عاجل أو قريب</div><div class="val" style="color:var(--red)">${counts.urgent + counts.soon}</div></div>`;
+}
+
+function renderAlerts() {
+  const urgent = programs.filter(p => getStatus(p) === 'urgent');
+  const soon = programs.filter(p => getStatus(p) === 'soon');
+  const active = programs.filter(p => getStatus(p) === 'active');
+  let html = '';
+
+  if (!urgent.length && !soon.length && !active.length) {
+    html = '<div class="empty"><span aria-hidden="true" style="font-style:normal;color:var(--green)">✅</span>لا توجد تنبيهات عاجلة الآن</div>';
+  } else {
+    if (active.length) {
+      html += `<div class="section-lbl"><span aria-hidden="true">▶️</span>نشط الآن (${active.length})</div>`;
+      active.forEach(p => {
+        html += `<div class="alert-card info"><span aria-hidden="true">ℹ️</span><div class="alert-text"><strong>برنامج #${p.id} — ${p.group}</strong><br>${p.company||''} · نشط الآن، ينتهي ${fmtDate(p.end)} (خلال ${diffDays(p.end)} يوم)</div></div>`;
+      });
+    }
+    if (urgent.length) {
+      html += `<div class="section-lbl" style="margin-top:${active.length?'1.25rem':'0'}"><span aria-hidden="true">⚠️</span>عاجل — يبدأ خلال يومين (${urgent.length})</div>`;
+      urgent.forEach(p => {
+        html += `<div class="alert-card danger"><span aria-hidden="true">⚠️</span><div class="alert-text"><strong>برنامج #${p.id} — ${p.group}</strong><br>${p.company||''} · يبدأ ${fmtDate(p.entry)} — خلال ${diffDays(p.entry)} يوم فقط!</div></div>`;
+      });
+    }
+    if (soon.length) {
+      html += `<div class="section-lbl" style="margin-top:${urgent.length||active.length?'1.25rem':'0'}"><span aria-hidden="true">🕐</span>قريب — يبدأ خلال 5 أيام (${soon.length})</div>`;
+      soon.forEach(p => {
+        html += `<div class="alert-card warn"><span aria-hidden="true">🕐</span><div class="alert-text"><strong>برنامج #${p.id} — ${p.group}</strong><br>${p.company||''} · يبدأ ${fmtDate(p.entry)} — خلال ${diffDays(p.entry)} أيام</div></div>`;
+      });
+    }
+  }
+  document.getElementById('alerts-content').innerHTML = html;
+  const total = urgent.length + soon.length + active.length;
+  document.getElementById('alert-count').innerHTML = total ? `<span class="notif-dot">${total}</span>` : '';
+}
+
+function renderStats() {
+  const totalPil = programs.reduce((a,p) => a+(p.pilgrims||0), 0);
+  const maxPil = Math.max(...COMPANIES.map(c => programs.filter(p=>p.company===c).reduce((a,p)=>a+(p.pilgrims||0),0)), 1);
+  const maxProg = Math.max(...COMPANIES.map(c => programs.filter(p=>p.company===c).length), 1);
+
+  let html = `<div class="stats">
+    <div class="stat"><div class="lbl">إجمالي البرامج</div><div class="val">${programs.length}</div></div>
+    <div class="stat"><div class="lbl">إجمالي المعتمرين</div><div class="val">${totalPil}</div></div>
+    <div class="stat"><div class="lbl">شركات لديها برامج</div><div class="val">${COMPANIES.filter(c=>programs.some(p=>p.company===c)).length}</div></div>
+    <div class="stat"><div class="lbl">متوسط لكل برنامج</div><div class="val">${programs.length ? Math.round(totalPil/programs.length) : 0}</div></div>
+  </div>`;
+
+  html += `<div class="section-lbl"><span aria-hidden="true">👥</span>عدد المعتمرين لكل شركة</div>`;
+  COMPANIES.forEach((c,i) => {
+    const pil = programs.filter(p=>p.company===c).reduce((a,p)=>a+(p.pilgrims||0),0);
+    const pct = Math.round((pil/maxPil)*100);
+    html += `<div class="bar-wrap">
+      <div class="bar-label"><span class="name" style="color:${C_COLORS[i]}">${c}</span><span class="count">${pil} معتمر</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${C_BARS[i]}"></div></div>
+    </div>`;
+  });
+
+  html += `<div class="section-lbl" style="margin-top:1.25rem"><span aria-hidden="true">🔢</span>عدد البرامج لكل شركة</div>`;
+  COMPANIES.forEach((c,i) => {
+    const cnt = programs.filter(p=>p.company===c).length;
+    const pct = Math.round((cnt/maxProg)*100);
+    html += `<div class="bar-wrap">
+      <div class="bar-label"><span class="name" style="color:${C_COLORS[i]}">${c}</span><span class="count">${cnt} برنامج</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${C_BARS[i]}"></div></div>
+    </div>`;
+  });
+
+  html += `<div class="section-lbl" style="margin-top:1.25rem"><span aria-hidden="true">📅</span>توزيع دفعات الدخول</div>`;
+  const batches = {};
+  programs.forEach(p => { if(!batches[p.entry]){batches[p.entry]={count:0,pil:0};} batches[p.entry].count++; batches[p.entry].pil += p.pilgrims||0; });
+  Object.entries(batches).sort().forEach(([d,v]) => {
+    html += `<div class="alert-card info" style="margin-bottom:8px"><span aria-hidden="true" style="font-style:normal;color:var(--blue)">📆</span><div class="alert-text"><strong>${fmtDate(d)}</strong> — ${v.count} برنامج · ${v.pil} معتمر</div></div>`;
+  });
+
+  document.getElementById('stats-content').innerHTML = html;
+}
+
+function renderLog() {
+  if (!changelog.length) { document.getElementById('log-content').innerHTML = '<div class="empty"><span aria-hidden="true">🕓</span>لا توجد تعديلات بعد</div>'; return; }
+  document.getElementById('log-content').innerHTML = changelog.map(l => `
+    <div class="log-item">
+      <div class="log-head">
+        <span class="log-prog"><span aria-hidden="true" style="font-style:normal;font-size:14px;vertical-align:-2px;margin-left:4px">✏️</span>برنامج #${l.id} — ${l.company||l.group}</span>
+        <span class="log-time"><span aria-hidden="true" style="font-style:normal;font-size:13px;vertical-align:-2px;margin-left:3px">🕐</span>${l.date} — ${l.time}</span>
+      </div>
+      ${l.changes.map(c=>`<div class="log-row"><span class="field-name">${c.field}:</span><span class="old-val">${c.old}</span><span class="arrow-lbl">←</span><span class="new-val">${c.new}</span></div>`).join('')}
+    </div>`).join('');
+}
+
+function renderAll() {
+  renderMain();
+  renderPrograms();
+  renderAlerts();
+  const total = programs.filter(p => ['urgent','soon','active'].includes(getStatus(p))).length;
+  document.getElementById('alert-count').innerHTML = total ? `<span class="notif-dot">${total}</span>` : '';
+}
+
+function exportCSV() {
+  const headers = ['رقم البرنامج','رقم المجموعة','الشركة','عدد المعتمرين','تاريخ الدخول','تاريخ الانتهاء','تاريخ التعديل','الحالة','ملاحظات'];
+  const rows = programs.map(p => [p.id,p.group,p.company||'',p.pilgrims,p.entry,p.end,p.modified,editStatusLabel(p.editStatus)||'',p.notes||'']);
+  const csv = '\uFEFF' + headers.join(',') + '\n' + rows.map(r => r.map(v=>`"${v}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'برامج_المعتمرين.csv';
+  a.click();
+  showToast('✓ تم تصدير الملف');
+}
+
+function exportPDF() {
+  const rows = programs.map(p=>`<tr><td>${p.id}</td><td>${p.group}</td><td>${p.company||'—'}</td><td>${p.pilgrims}</td><td>${fmtDate(p.entry)}</td><td>${fmtDate(p.end)}</td><td>${editStatusLabel(p.editStatus)||'—'}</td><td>${p.notes||'—'}</td></tr>`).join('');
+  const html = `<html dir="rtl"><head><meta charset="utf-8"><title>برامج المعتمرين</title><style>body{font-family:Arial,sans-serif;padding:24px;direction:rtl;font-size:13px}h2{margin-bottom:16px;font-size:18px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:7px 10px;text-align:right}th{background:#f5f5f2;font-weight:bold}.date{font-size:12px;color:#888;margin-bottom:16px}</style></head><body><h2>برامج المعتمرين</h2><div class="date">تاريخ التصدير: ${new Date().toLocaleDateString('ar-SA')}</div><table><tr><th>#</th><th>رقم المجموعة</th><th>الشركة</th><th>معتمرين</th><th>دخول</th><th>انتهاء</th><th>الحالة</th><th>ملاحظات</th></tr>${rows}</table></body></html>`;
+  const w = window.open('', '_blank');
+  w.document.write(html); w.document.close(); w.print();
+}
+
+// Browser notifications
+function requestNotifPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission().then(perm => {
+      if (perm === 'granted') checkAndNotify();
+    });
+  } else if (Notification.permission === 'granted') {
+    checkAndNotify();
+  }
+}
+function checkAndNotify() {
+  const urgent = programs.filter(p => getStatus(p) === 'urgent');
+  const soon = programs.filter(p => getStatus(p) === 'soon');
+  if (urgent.length) {
+    new Notification('⚠️ برامج عاجلة', { body: `${urgent.length} برنامج يبدأ خلال يومين أو أقل!`, icon: '' });
+  } else if (soon.length) {
+    new Notification('🕐 تذكير', { body: `${soon.length} برنامج يبدأ خلال 5 أيام`, icon: '' });
+  }
+}
+
+// Init
+renderAll();
+setTimeout(() => {
+  requestNotifPermission();
+  const u = programs.filter(p => ['urgent','soon','active'].includes(getStatus(p))).length;
+  if (u) showToast(`🔔 ${u} برنامج يحتاج انتباهك اليوم`);
+}, 800);
+</script>
+</body>
+</html>
